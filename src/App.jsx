@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
@@ -12,45 +11,50 @@ function App() {
     "https://images.pexels.com/photos/1322185/pexels-photo-1322185.jpeg?auto=compress&cs=tinysrgb&w=600",
   ];
 
-  const [Image, setImage] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [imageslider, setImageSlider] = useState(true);
 
-  const slideImgRight = () => {
-    setImage(Image + 1);
-  };
+  const hoverRef = useRef(null);
 
-  const slideImgLeft = () => {
-    setImage(Image - 1);
-  };
+  useEffect(() => {
+    const image = hoverRef.current;
+
+    // Add event listeners
+    image.addEventListener("mouseenter", () => setImageSlider(false));
+    image.addEventListener("mouseleave", () => setImageSlider(true)); 
+
+    // Start the image slider interval
+    let interval;
+    if (imageslider) {
+      interval = setInterval(() => {
+        setImageIndex((prevIndex) => (prevIndex + 1) % imgs.length);
+      }, 500);
+    }
+
+    // Cleanup function to remove event listeners and clear the interval
+    return () => {
+      image.addEventListener("mouseenter", () => setImageSlider(false));
+      image.addEventListener("mouseleave", () => setImageSlider(true));
+      if (interval) clearInterval(interval);
+    };
+  }, [imageslider, imgs.length]);
 
   return (
-    <div className=" w-full bg-gray-700  px-10 py-8 rounded-lg text-center ">
+    <div className="w-full bg-gray-700 px-10 py-8 rounded-lg text-center">
       {/* img div */}
-      <div className=" mb-6 bg-pink-300 ">
-        {<img src={imgs[Image]} className=" shadow-lg" />}
+      <div className="mb-6 bg-pink-300">
+        <img
+          src={imgs[imageIndex]}
+          className="shadow-lg"
+          ref={hoverRef}
+          alt={`Slide ${imageIndex + 1}`}
+        />
       </div>
 
       <div className="flex justify-between">
-        {/* left button*/}
-        <button
-          className="bg-blue-300 text-xl text-black hover:bg-blue-600 hover:text-white"
-          onClick={slideImgLeft}
-          disabled={Image == 0}
-        >
-          <span>&lt;</span>Left
-        </button>
-
         <p>
-          {Image + 1}/{imgs.length}
+          {imageIndex + 1}/{imgs.length}
         </p>
-
-        {/* right  button*/}
-        <button
-          className="bg-blue-300 text-xl  text-black hover:bg-blue-600 hover:text-white"
-          onClick={slideImgRight}
-          disabled={Image == imgs.length - 1}
-        >
-          Right <span>&gt;</span>
-        </button>
       </div>
     </div>
   );
